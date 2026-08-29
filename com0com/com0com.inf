@@ -15,7 +15,7 @@ Class = CNCPorts
 ClassGUID = {df799e12-3c56-421b-b298-b6d3642bc878}
 CatalogFile = com0com.cat
 ;           MM/DD/YYYY
-DriverVer = 06/04/2012,3.0.0.0
+DriverVer = 07/30/2026,13.56.5.849
 UninstallInfTag = {df799e12-3c56-421b-b298-b6d3642bc878}
 
 ;******************************************************************************
@@ -131,3 +131,4 @@ com0com.SrvDesc = "com0com - emulates the serial ports interconnected via a null
 ClassName = "com0com - serial port emulators"
 
 ;******************************************************************************
+

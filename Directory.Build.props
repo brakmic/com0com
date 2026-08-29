@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- Shared output directories for all projects -->
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <!-- Let MSBuild auto-detect the latest installed Windows SDK/WDK version.
+         Hardcoding this to "10.0" breaks the kernel-mode driver toolset which
+         derives WDKBuildFolder from this property and needs the full version. -->
+  </PropertyGroup>
+  <!-- C++ specific defaults (not applied to C# projects) -->
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">
+    <CharacterSet>MultiByte</CharacterSet>
+    <WarningLevel>Level4</WarningLevel>
+  </PropertyGroup>
+</Project>

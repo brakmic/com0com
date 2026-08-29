@@ -1,0 +1,44 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Folder Name="/Driver/">
+    <Project Path="sys\com0com.vcxproj" Id="{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+  <Folder Name="/Setup/">
+    <Project Path="setup\setup.vcxproj" Id="{6ACC2F57-86A2-41D4-8744-5982985E99DA}">
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="*|x86" Project="x86" />
+    </Project>
+    <Project Path="setupc\setupc.vcxproj" Id="{B1C2D3E4-F5A6-7890-BCDE-F12345678901}">
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="*|x86" Project="x86" />
+    </Project>
+  </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="..\com2tcp\com2tcp.vcxproj" Id="{4DF5E603-9690-4C6F-8C66-1D16613BCB17}">
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="*|x86" Project="x86" />
+    </Project>
+    <Project Path="..\hub4com\hub4com.vcxproj" Id="{AC4EC208-ED55-4F9D-ACDD-A57642C3C296}">
+      <Platform Solution="*|x64" Project="x64" />
+      <Platform Solution="*|x86" Project="x86" />
+    </Project>
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="setup\tests\setup_tests.vcxproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="..\com2tcp\tests\com2tcp_tests.vcxproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="..\hub4com\tests\hub4com_tests.vcxproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+  </Folder>
+</Solution>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0"
+         xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
+    <RootNamespace>com0com</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <!-- WDK 10.0.26100.0 ships with v17.0 build tasks but VS 2026 sets
+         VisualStudioVersion=18.0. Override so the WDK targets can find their DLL. -->
+    <VisualStudioVersion>17.0</VisualStudioVersion>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration"
+      Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>True</UseDebugLibraries>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <DriverType>WDM</DriverType>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration"
+      Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>False</UseDebugLibraries>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <DriverType>WDM</DriverType>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <!-- InfVerif.dll (x86) is not included in all WDK installs. -->
+    <SkipPackageVerification>true</SkipPackageVerification>
+    <!-- Suppress deprecation warnings for legacy pool allocation APIs.
+         ExAllocatePoolWithTag/ExAllocatePoolWithQuotaTag are deprecated in
+         favor of ExAllocatePool2, but the newer API requires WDK 10.0.26100+
+         and structural changes to every call site. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Disable driver signing during development builds.
+         Signing requires a code-signing certificate configured in the project.
+         The driver will be test-signed separately for installation. -->
+    <SignMode>Off</SignMode>
+    <DriverSign_Type>0</DriverSign_Type>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="initunlo.c" />
+    <ClCompile Include="adddev.c" />
+    <ClCompile Include="showport.c" />
+    <ClCompile Include="openclos.c" />
+    <ClCompile Include="pnp.c" />
+    <ClCompile Include="power.c" />
+    <ClCompile Include="ioctl.c" />
+    <ClCompile Include="wmi.c" />
+    <ClCompile Include="commprop.c" />
+    <ClCompile Include="read.c" />
+    <ClCompile Include="write.c" />
+    <ClCompile Include="wait.c" />
+    <ClCompile Include="fileinfo.c" />
+    <ClCompile Include="io.c" />
+    <ClCompile Include="pinouts.c" />
+    <ClCompile Include="handflow.c" />
+    <ClCompile Include="startirp.c" />
+    <ClCompile Include="timeout.c" />
+    <ClCompile Include="delay.c" />
+    <ClCompile Include="bufutils.c" />
+    <ClCompile Include="strutils.c" />
+    <ClCompile Include="noise.c" />
+    <ClCompile Include="rand.c" />
+    <ClCompile Include="syslog.c" />
+    <ClCompile Include="trace.c" />
+    <ClCompile Include="tracetbl.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="precomp.h" />
+    <ClInclude Include="com0com.h" />
+    <ClInclude Include="bufutils.h" />
+    <ClInclude Include="commprop.h" />
+    <ClInclude Include="delay.h" />
+    <ClInclude Include="halt.h" />
+    <ClInclude Include="handflow.h" />
+    <ClInclude Include="noise.h" />
+    <ClInclude Include="rand.h" />
+    <ClInclude Include="showport.h" />
+    <ClInclude Include="strutils.h" />
+    <ClInclude Include="syslog.h" />
+    <ClInclude Include="timeout.h" />
+    <ClInclude Include="trace.h" />
+    <ClInclude Include="version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <MessageCompile Include="c0clog.mc">
+      <GenerateKernelModeLoggingMacros>true</GenerateKernelModeLoggingMacros>
+      <HeaderFilePath>$(IntDir)</HeaderFilePath>
+      <RCFilePath>$(IntDir)</RCFilePath>
+    </MessageCompile>
+    <ResourceCompile Include="com0com.rc">
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="..\com0com.inf" />
+    <Inf Include="..\cncport.inf" />
+    <Inf Include="..\comport.inf" />
+    <FilesToPackage Include="$(TargetPath)" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

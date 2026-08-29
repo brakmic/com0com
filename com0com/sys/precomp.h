@@ -53,47 +53,6 @@
 
 #pragma warning(pop)
 
-#ifndef NTDDI_WIN7
-
-/* Declarations missing in old DDKs */
-
-typedef VOID KDEFERRED_ROUTINE(
-    IN PKDPC pDpc,
-    IN PVOID deferredContext,
-    IN PVOID systemArgument1,
-    IN PVOID systemArgument2);
-
-#ifndef NTDDI_VERSION
-
-#define __drv_dispatchType(type)
-#define __drv_aliasesMem
-
-typedef NTSTATUS DRIVER_INITIALIZE(
-    IN PDRIVER_OBJECT pDrvObj,
-    IN PUNICODE_STRING pRegistryPath);
-
-typedef VOID DRIVER_UNLOAD(
-    IN PDRIVER_OBJECT pDrvObj);
-
-typedef NTSTATUS DRIVER_ADD_DEVICE(
-    IN PDRIVER_OBJECT pDrvObj,
-    IN PDEVICE_OBJECT pPhDevObj);
-
-typedef NTSTATUS DRIVER_DISPATCH(
-    IN PDEVICE_OBJECT,
-    IN PIRP);
-
-typedef VOID DRIVER_CANCEL(
-    IN PDEVICE_OBJECT pDevObj,
-    IN PIRP pIrp);
-
-NTSYSAPI NTSTATUS NTAPI ZwDeleteValueKey(
-    IN HANDLE KeyHandle,
-    IN PUNICODE_STRING ValueName);
-
-#endif /* NTDDI_VERSION */
-#endif /* NTDDI_WIN7 */
-
 #ifndef ENABLE_TRACING
   #define ENABLE_TRACING 1
 #endif

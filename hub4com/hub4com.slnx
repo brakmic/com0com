@@ -1,0 +1,30 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="hub4com.vcxproj" Id="{AC4EC208-ED55-4F9D-ACDD-A57642C3C296}">
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+  </Project>
+  <Folder Name="/Plugins/">
+    <Project Path="plugins\serial\serial.vcxproj" Id="{031557BD-5B2D-4B87-B40D-2DD9C43E68BC}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\tcp\tcp.vcxproj" Id="{A1F397C9-2779-49D9-886F-A25D5E41EB0B}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\telnet\telnet.vcxproj" Id="{BE3A1495-71A9-4B47-B1AC-44CB14A6E721}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\awakseq\awakseq.vcxproj" Id="{58AC48ED-1D7D-4947-8BAA-4CD813B24760}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\pin2con\pin2con.vcxproj" Id="{1706553E-2EDE-4A20-96A5-60ACD10A8F2D}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\echo\echo.vcxproj" Id="{F0ACE42D-3488-4054-B683-3B4BC43CD239}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\pinmap\pinmap.vcxproj" Id="{DC90F370-D011-4C9A-BD59-6BDC9BC161C0}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\escparse\escparse.vcxproj" Id="{B56122ED-F2E6-4FA1-8E85-B8C606ED9400}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\trace\trace.vcxproj" Id="{EDA524BD-8193-49E5-995E-9EE533E2641E}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\escinsert\escinsert.vcxproj" Id="{4BFE1E9D-47D4-4172-A749-9AC2626C88F3}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\linectl\linectl.vcxproj" Id="{8060E11C-18B2-4F9D-BDC0-A37726A3B8B9}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\lsrmap\lsrmap.vcxproj" Id="{9089D426-5B23-4F82-B32E-33D56AF225DC}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\connector\connector.vcxproj" Id="{630AEA21-57A9-4803-BA9A-F85DCB73CD5D}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\tag\tag.vcxproj" Id="{523E524B-786C-45AB-A393-5135706449BC}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\crypt\crypt.vcxproj" Id="{FEB9BD18-B0EA-460F-8404-C97BD2623227}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+    <Project Path="plugins\purge\purge.vcxproj" Id="{EAC5A50E-9D86-4EC0-B57D-CBEC0ABDCECC}"><Platform Solution="*|x64" Project="x64" /><Platform Solution="*|x86" Project="x86" /></Project>
+  </Folder>
+</Solution>
