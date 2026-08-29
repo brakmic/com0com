@@ -1,4 +1,4 @@
-// common.ver — shared VS_VERSION_INFO resource template
+// common.ver: shared VS_VERSION_INFO resource template
 //
 // Each .rc file must define the following macros BEFORE including this file:
 //   VER_FILEVERSION, VER_PRODUCTVERSION, VER_FILEFLAGSMASK, VER_FILEFLAGS,

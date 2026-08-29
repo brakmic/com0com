@@ -1,15 +1,15 @@
-# Testing — com0com Test Suite
+# Testing: com0com Test Suite
 
-Last updated: 2026-07-30
+Last updated: 2026-08-29
 
 ## Overview
 
-The test suite covers 263 tests across four executables. All tests are run with
+The test suite covers 264 tests across four executables. All tests are run with
 `scripts\run_tests.ps1`.
 
 | Test executable | Framework | Tests | What it covers |
 |---|---|---|---|
-| `setup_tests.exe` | Catch2 v3.12 | 81 | setup.dll, comdb, mocks, integration, null-modem |
+| `setup_tests.exe` | Catch2 v3.12 | 82 | setup.dll, comdb, mocks, integration, null-modem |
 | `com2tcp_tests.exe` | Catch2 v3.12 | 60 | Telnet RFC 2217, COM parameters, integration |
 | `hub4com_tests.exe` | Catch2 v3.12 | 64 | HubMsg types, routes, filters, 16 plugins |
 | `setupg.Tests.dll` | xUnit | 58 | C# setup GUI logic, SetupCommand, SetupOutputParser |
@@ -32,46 +32,47 @@ dotnet test com0com\setupg.Tests\
 
 ## Test Tiers
 
-### Tier 1 — Unit Tests (no OS dependencies)
+### Tier 1: Unit Tests (no OS dependencies)
 
 Test individual functions and classes without external state. Built with the
 v143 toolset, no driver or admin privileges required.
 
 **setup.dll:**
-- `params_test.cpp` — Port parameter parsing and validation
-- `comdb_test.cpp` — COM port database load/save/query
+- `params_test.cpp`: Port parameter parsing and validation
+- `comdb_test.cpp`: COM port database load/save/query
 
 **com2tcp:**
-- `telnet_protocol_test.cpp` — TelnetProtocol IAC state machine, escaping, option negotiation
-- `com_params_test.cpp` — Command-line COM parameter parsing
+- `telnet_protocol_test.cpp`: TelnetProtocol IAC state machine, escaping, option negotiation
+- `com_params_test.cpp`: Command-line COM parameter parsing
 
 **hub4com:**
-- `hub_msg_type_test.cpp` — HubMsg type system, union type flags
-- `routine_valid_test.cpp` — `ROUTINE_IS_VALID` macro boundary tests
-- `go_so_test.cpp` — GO/SO option parsing
+- `hub_msg_type_test.cpp`: HubMsg type system, union type flags
+- `routine_valid_test.cpp`: `ROUTINE_IS_VALID` macro boundary tests
+- `go_so_test.cpp`: GO/SO option parsing
 
 **C# setupg:**
-- `FakeSetupCommand` — Command parsing, output parsing, port pair data model
+- `FakeSetupCommand`: Command parsing, output parsing, port pair data model
 
-### Tier 2 — Mock Tests (mocked OS calls)
+### Tier 2: Mock Tests (mocked OS calls)
 
 Test functions that call Win32 APIs by redirecting them to in-memory mocks.
 Uses preprocessor redefinition in `win32_overrides.h` to replace registry,
 file I/O, and SetupAPI calls.
 
-- `mock_registry_test.cpp` — In-memory registry mock validation
-- `mock_comdb_test.cpp` — `LoadComDbLocal()` / `SaveComDbLocal()` round-trip with mocked COM DB
-- Production `comdb.cpp` compiled with mock stubs
+- `mock_registry_test.cpp`: In-memory registry mock validation
+- `mock_comdb_test.cpp`: `LoadComDbLocal()` / `SaveComDbLocal()` round-trip
+  with the in-memory registry mock. Production `comdb.cpp` is included
+  directly with `win32_overrides.h` applied.
 
-### Tier 3 — Integration Tests (real EXE/DLL)
+### Tier 3: Integration Tests (real EXE/DLL)
 
 Test real executables and DLLs by loading them and calling their entry points.
 
-- `main_a_test.cpp` — `MainA()` calls via `LoadLibrary` on `setup.dll` (list, help, busynames)
-- `com2tcp_integration_test.cpp` — `com2tcp.exe --help` output validation
-- `hub4com_integration_test.cpp` — `hub4com.exe --help` and plugin loading
+- `main_a_test.cpp`: `MainA()` calls via `LoadLibrary` on `setup.dll` (list, help, busynames)
+- `com2tcp_integration_test.cpp`: `com2tcp.exe --help` output validation
+- `hub4com_integration_test.cpp`: `hub4com.exe --help` and plugin loading
 
-### Tier 4 — Driver Tests (requires kernel driver)
+### Tier 4: Driver Tests (requires kernel driver)
 
 Test the running com0com driver through actual COM port I/O. Requires:
 - Administrator privileges
@@ -93,12 +94,13 @@ Test the running com0com driver through actual COM port I/O. Requires:
 
 ### C# Integration Tests
 
-- `SetupCommandIntegrationTests.cs` — Real `setupc.exe` calls (list, help, invalid command, ListAll, quit)
+- `SetupCommandIntegrationTests.cs`: Real `setupc.exe` calls (list, help, invalid command, ListAll, quit)
 
 ## Driver Test Setup
 
-Driver tests use the `[driver]` Catch2 tag. They are skipped by default in
-`scripts\run_tests.ps1` unless running as Administrator.
+Driver tests use the `[driver]` Catch2 tag. The main runner
+`scripts\run_tests.ps1` always excludes them. Run them with
+`scripts\run_driver_tests.ps1` from an elevated shell.
 
 Before running driver tests:
 

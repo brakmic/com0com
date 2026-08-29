@@ -1,5 +1,5 @@
-# run_driver_tests.ps1 — Run Tier 4 null-modem tests as Administrator
-# Usage: Right-click PowerShell → Run as Administrator, then:
+# run_driver_tests.ps1: Run Tier 4 null-modem tests as Administrator
+# Usage: open PowerShell as Administrator, then run:
 #   .\scripts\run_driver_tests.ps1
 
 $ErrorActionPreference = "Stop"

@@ -1,6 +1,6 @@
 # com0com User Guide
 
-Last updated: 2026-07-30
+Last updated: 2026-08-29
 
 ## What com0com Does
 
@@ -12,7 +12,7 @@ A typical use: two programs that need to talk over a serial connection, running 
 the same machine. Instead of two physical serial ports and a null-modem cable,
 you install a com0com port pair.
 
-## Quick Start -- The Bare Minimum
+## Quick Start: The Bare Minimum
 
 After installation, you need one port pair. From an administrator command prompt:
 
@@ -71,20 +71,21 @@ Launch `setupg.exe` from the install directory. The window shows:
 
 ### Port Name Field
 
-Shows the current COM port name. A **red** name means it conflicts with an existing
-port. A **blue** name means it was changed and needs Apply. Black means unchanged.
-
-Enter `COM#` for automatic COM port assignment by Windows. Enter `COM8` for a
-specific number. Enter `-` to reset to the CNCAx/CNCBx default.
+Shows the current COM port name and sends its contents to `setupc change` when
+you click Apply. Enter `COM#` for automatic COM port assignment by Windows.
+Enter `COM8` for a specific number. Enter `-` to reset to the CNCAx/CNCBx
+identifier.
 
 ### Use Ports Class Checkbox
 
-When checked, the port is registered under the Windows Ports class. This is what
-makes the port appear as a standard COM port in Device Manager and in application
-port lists. Unchecked ports use the custom CNCPorts class instead and are opened
-as `\\.\CNCA0` rather than `\\.\COM4`.
+This checkbox shows whether the port is set to `COM#` automatic assignment.
+Ports with `COM#` are registered under the Windows Ports class, which makes
+them appear as standard COM ports in Device Manager and in application port
+lists. Ports with CNCAx/CNCBx names use the CNCPorts class and are opened as
+`\\.\CNCA0` rather than `\\.\COM4`.
 
-Most users want this checked for both ports.
+To register a port under the Ports class, type `COM#` into the name field and
+click Apply. The checkbox reflects that state.
 
 ### Hidden Mode Checkbox
 
@@ -93,7 +94,7 @@ open it if they know the name. This is useful when one side of the pair is used
 by a service or background process that does not need user visibility.
 
 HiddenMode is **off by default for both ports**. The driver initializes every port
-identically — there is no built-in convention of hiding one side. Enable it on
+identically. There is no built-in convention of hiding one side. Enable it on
 either or both ports as needed.
 
 ### Baud Rate Emulation
@@ -103,7 +104,7 @@ settings. When **Emulate baud rate** is checked, the driver throttles data
 to the actual bit rate. At 9600 baud with 8-N-1 framing (10 bits per byte),
 this means approximately 960 bytes per second.
 
-Enable this when testing applications that depend on timing -- for example,
+Enable this when testing applications that depend on timing, for example,
 protocols with timeouts or baud-rate-dependent flow control. Leave it off for
 maximum throughput.
 
@@ -111,14 +112,13 @@ maximum throughput.
 
 **Apply** writes all changes made in the GUI to the driver. Until you click Apply,
 your edits exist only in the GUI. After Apply, the driver is notified and the
-changes take effect immediately (no reboot needed for most parameters).
+changes take effect immediately (no reboot needed for most parameters). The
+status line shows "Nothing to apply." when there are no pending changes and
+"Changes applied." after a successful apply.
 
-**Reset** discards all un-applied changes by reloading the current state from the
-driver. If you made changes but have not clicked Apply, Reset reverts the GUI to
-the last applied configuration. If you already clicked Apply, Reset does nothing
-visible — it reloads the already-current values. The status message always shows
-"Changes discarded." even when there are no pending changes; this is a known
-cosmetic issue.
+**Reset** discards all un-applied changes by reloading the current state from
+the driver. The status line shows "Changes discarded." when there were pending
+changes, and "Already up to date." when the GUI already matches the driver.
 
 Typical workflow: make changes → click Apply to commit them → verify the changes
 work → if something is wrong, make more changes → Apply again. Use Reset when you
@@ -179,13 +179,13 @@ routing dropdowns in the GUI show the current wiring for CTS, DSR, DCD, and RI.
 
 | Source | Meaning |
 |---|---|
-| `rrts` | Remote RTS -- the paired port's RTS output |
-| `rdtr` | Remote DTR -- the paired port's DTR output |
+| `rrts` | Remote RTS: the paired port's RTS output |
+| `rdtr` | Remote DTR: the paired port's DTR output |
 | `rout1` | Remote OUT1 |
 | `rout2` | Remote OUT2 |
 | `ropen` | Remote port open state |
-| `lrts` | Local RTS -- this port's own RTS output (loopback) |
-| `ldtr` | Local DTR -- this port's own DTR output (loopback) |
+| `lrts` | Local RTS: this port's own RTS output (loopback) |
+| `ldtr` | Local DTR: this port's own DTR output (loopback) |
 | `lout1` | Local OUT1 |
 | `lout2` | Local OUT2 |
 | `lopen` | Local port open state |
@@ -204,8 +204,8 @@ deasserted (logical 0).
 | RI | `!on` (always off) | `!on` (always off) | Ring indicator never asserts |
 
 These defaults match the behavior of a physical null-modem cable with full
-handshaking. The most common change is wiring RI to something useful (like
-`lopen` for a "port active" indicator).
+handshaking. The most common change is wiring RI to something useful, such as
+`lopen` for a port-active indicator.
 
 ## Using setupc from the Command Line
 
@@ -280,7 +280,7 @@ setupc reload
 | Option | Effect |
 |---|---|
 | `--silent` | Suppress message boxes and confirmation prompts |
-| `--no-update` | Skip driver reactivation. Use for batch operations -- run once at the end. |
+| `--no-update` | Skip driver reactivation. Use for batch operations, run once at the end. |
 | `--wait` | Wait for driver to finish processing before returning |
 | `--detail-prms` | Show all 15 parameters per port in list output |
 | `--output <file>` | Append output to a file |
@@ -332,7 +332,7 @@ handles timing correctly.
    ensures realistic timing.
 
 4. Without `EmuBR=yes`, the 100-byte message transfers instantly (microseconds),
-   and your timeout test would always pass -- hiding real-world timing bugs.
+   and your timeout test would always pass, hiding real-world timing bugs.
 
 ### Workflow 3: Hidden Background Service Port
 
@@ -414,9 +414,8 @@ For example, port CNCA0's parameters are at:
 HKLM\SYSTEM\CurrentControlSet\Services\com0com\Parameters\CNCA0\
 ```
 
-Each of the 15 parameters has a REG_SZ value. Parameter names are
-case-sensitive. Values are stored exactly as entered (except PortName,
-which is always uppercased).
+Each of the 15 parameters has a REG_SZ value. Values are stored exactly
+as entered, except PortName, which is always uppercased.
 
 The driver reads these at startup and when a reload command is issued.
 Changes take effect on the next port open or after `setupc reload`.
@@ -449,4 +448,4 @@ The driver is not installed or not running. Run:
 setupc preinstall
 setupc update
 ```
-Or check Device Manager for the com0com device under "com0com devices."
+Or check Device Manager under "com0com - serial port emulators".

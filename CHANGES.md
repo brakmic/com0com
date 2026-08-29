@@ -1,6 +1,6 @@
 # Changes
 
-## 3.0.1.0 — 2026-07-30 (Updated Edition)
+## 2026-07-30
 
 ### Driver fixes
 
@@ -27,11 +27,11 @@
 
 - **All user-mode C/C++ projects compile with MSBuild**: setup.dll, setupc.exe,
   hub4com.exe, com2tcp.exe, and all 16 filter plugins build via `msbuild` with
-  the v143 toolset.
+  the v145 toolset.
 
 ### Test suite
 
-- **263 tests, 1,068+ assertions across 4 tiers**:
+- **264 tests across 4 tiers**:
   - Tier 1: Unit tests for params, COM database, telnet protocol, hub messages
   - Tier 2: Mock-based tests for registry loading, port enumeration
   - Tier 3: Integration tests for setup.dll, com2tcp, hub4com
@@ -44,10 +44,10 @@
 
 ### Documentation
 
-- `BUILDING.md` — build prerequisites, driver signing, test invocation
-- `ARCHITECTURE.md` — WDM driver model, hub4com filter pipeline, plugin API
-- `TESTING.md` — 4-tier test strategy, mock framework, driver setup
-- `USERGUIDE.md` — port configuration parameters, setupg GUI reference,
+- `docs/BUILDING.md`: build prerequisites, driver signing, test invocation
+- `docs/ARCHITECTURE.md`: WDM driver model, hub4com filter pipeline, plugin API
+- `docs/TESTING.md`: 4-tier test strategy, mock framework, driver setup
+- `USERGUIDE.md`: port configuration parameters, setupg GUI reference,
   setupc command-line reference, example workflows
 
 ### Upgrade notes
@@ -56,6 +56,6 @@ The driver defaults changed from 7-E-1 at 1200 to 8-N-1 at 9600. Existing
 installations with explicit `SetCommState` calls in applications are unaffected.
 Installations that relied on the old 7-bit default may see different behavior.
 
-The MSI installer creates no Start Menu shortcuts for the NSIS-installed
-version. The install directory changed from the NSIS default. Clean uninstall
-the old version before installing this one.
+The MSI installer replaces the NSIS installer. If an NSIS-based build is
+installed, uninstall it first. The MSI uses a different install directory and
+registers its own Start Menu shortcuts.

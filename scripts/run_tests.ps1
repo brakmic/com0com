@@ -1,21 +1,34 @@
-# run_tests.ps1 — Unified test runner for all com0com projects
+# run_tests.ps1: Unified test runner for all com0com projects
 #
 # Builds and runs C++ Catch2 tests and C# xUnit tests.
 # Usage:
 #   .\scripts\run_tests.ps1              # run all tests
-#   .\scripts\run_tests.ps1 -Level unit  # unit tests only (no driver needed)
 #   .\scripts\run_tests.ps1 -SkipBuild   # run without rebuilding
+#
+# Driver tests tagged [driver] are not part of this run. They need an
+# installed driver pair and Administrator privileges. Run them with
+# .\scripts\run_driver_tests.ps1.
 
 param(
-    [ValidateSet("unit","mock","component","integration","all")]
-    [string]$Level = "unit",
     [switch]$SkipBuild
 )
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $PSCommandPath
 $WorkspaceRoot = Resolve-Path "$ScriptDir\.."
-$MSBuild = "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
+
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$MSBuild = $null
+if (Test-Path $vswhere) {
+    $MSBuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find "MSBuild\**\Bin\MSBuild.exe" | Select-Object -First 1
+}
+if (-not $MSBuild -or -not (Test-Path $MSBuild)) {
+    $MSBuild = "msbuild"
+}
+
+# Driver tests are excluded because they require an installed driver pair.
+$catchArgs = @("~[driver]")
+
 $SlnFile = "$WorkspaceRoot\com0com\com0com.slnx"
 
 $totalPassed = 0
@@ -101,9 +114,9 @@ if (-not $SkipBuild) {
 $BuildDir = "$WorkspaceRoot\com0com\build\tests\Debug"
 
 Write-Header "C++ Unit Tests (Tier 1)"
-Invoke-TestExe "$BuildDir\setup_tests.exe" "setup.dll (params + comdb)"
-Invoke-TestExe "$BuildDir\com2tcp_tests.exe" "com2tcp (telnet + params)"
-Invoke-TestExe "$BuildDir\hub4com_tests.exe" "hub4com (hubmsg + GO/SO + ROUTINE_IS_VALID)"
+Invoke-TestExe "$BuildDir\setup_tests.exe" "setup.dll (params + comdb)" $catchArgs
+Invoke-TestExe "$BuildDir\com2tcp_tests.exe" "com2tcp (telnet + params)" $catchArgs
+Invoke-TestExe "$BuildDir\hub4com_tests.exe" "hub4com (hubmsg + GO/SO + ROUTINE_IS_VALID)" $catchArgs
 
 # ═══════════════════════════════════════════════════════════════════
 # C# Tests (xUnit)

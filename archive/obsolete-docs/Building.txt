@@ -3,7 +3,7 @@
                ================================
 
 NOTE: These build instructions are obsolete. For current build instructions
-using Visual Studio 2026, see BUILDING.md at the workspace root.
+using Visual Studio 2026, see docs/BUILDING.md.
 
 PREREQUISITES
 =============

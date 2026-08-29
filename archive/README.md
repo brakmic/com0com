@@ -2,7 +2,7 @@
 
 These files were part of the original com0com distribution by Vyacheslav Frolov
 (2004-2012). They have been replaced by the modern build system based on Visual
-Studio 2026, MSBuild, and .NET 10. See `BUILDING.md` at the workspace root for
+Studio 2026, MSBuild, and .NET 10. See `docs/BUILDING.md` for
 current build instructions.
 
 ## Contents
@@ -72,7 +72,7 @@ NSIS script was preserved in full for reference during the WiX implementation.
 
 Two `Building.txt` files describing the DDK and VC++ 2005 build procedure.
 
-Replaced by: `BUILDING.md` at the workspace root.
+Replaced by: `docs/BUILDING.md`.
 
 ### Root Files
 

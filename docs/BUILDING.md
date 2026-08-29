@@ -28,7 +28,7 @@ The workspace contains four groups of projects:
 | Group | Toolset | Output |
 |---|---|---|
 | Kernel driver | `WindowsKernelModeDriver10.0` | `com0com.sys`, `.inf`, `.cat` |
-| User-mode C/C++ | `v143` | `setup.dll`, `setupc.exe`, `com2tcp.exe`, `hub4com.exe`, plugins |
+| User-mode C/C++ | `v145` | `setup.dll`, `setupc.exe`, `com2tcp.exe`, `hub4com.exe`, plugins |
 | C# GUI | .NET 10.0 | `setupg.exe` |
 | C++ tests (Catch2) | `v143` | `setup_tests.exe`, `com2tcp_tests.exe`, `hub4com_tests.exe` |
 | C# tests (xUnit) | .NET 10.0 | `setupg.Tests.dll` |
@@ -43,7 +43,7 @@ From the workspace root:
 # Kernel driver
 msbuild com0com\sys\com0com.vcxproj /p:Configuration=Release /p:Platform=x64
 
-# All user-mode C/C++ projects
+# Driver plus user-mode tools (the slnx includes the driver)
 msbuild com0com\com0com.slnx /p:Configuration=Release /p:Platform=x64
 
 # hub4com and plugins
@@ -53,8 +53,7 @@ msbuild hub4com\hub4com.slnx /p:Configuration=Release /p:Platform=x64
 dotnet build com0com\setupg\setupg.csproj --configuration Release
 
 # All tests
-msbuild com0com\com0com.slnx /p:Configuration=Debug /p:Platform=x64 /t:setup_tests
-dotnet build com0com\setupg.Tests\setupg.Tests.csproj
+.\scripts\run_tests.ps1
 ```
 
 ## Driver Build Details
@@ -73,10 +72,11 @@ shipped before Visual Studio 2026:
 3. `SkipPackageVerification` is set to true. The WDK's `InfVerif.dll` (x86 variant) is
    not included in all WDK installations.
 
-4. The Release build injects `/d1nodatetime` which disables the `__DATE__` and `__TIME__`
-   macros. The code in `trace.c` was updated to not use these macros.
+4. `SignMode` is set to Off and `DriverSign_Type` to 0. The driver is
+   test-signed as a separate step after the build, see Driver Signing below.
 
-Output is at `com0com\sys\x64\Release\com0com.sys`.
+Output is at `com0com\sys\x64\Release\com0com\com0com.sys` together with the
+INF and CAT files.
 
 ### Driver Defects Fixed
 
@@ -103,17 +103,14 @@ Run `scripts\create_certs.ps1` as Administrator. This script creates:
   `1.3.6.1.4.1.311.61.4.1` (Kernel Mode Code Signing), installed to
   `LocalMachine\TrustedPublisher`
 
-The root CA thumbprint is `1F28A664FA08D8B1C5256AB8EB2D7022852C9F70`.
-The signing cert thumbprint is `808BDD474790DA8AC920E3D812E5E1FC4EC4E4E6`.
-
-If you recreate the certificates, update these thumbprints in any scripts that
-reference them.
+The script prints the thumbprints of both certificates. Use the kernel signing
+certificate's thumbprint for the signing commands below.
 
 ### Sign the driver (every build)
 
 ```
-signtool sign /fd SHA256 /sha1 808BDD474790DA8AC920E3D812E5E1FC4EC4E4E6 com0com\sys\x64\Release\com0com.sys
-signtool sign /fd SHA256 /sha1 808BDD474790DA8AC920E3D812E5E1FC4EC4E4E6 com0com\sys\x64\Release\com0com\com0com.cat
+signtool sign /fd SHA256 /sha1 <CERT_THUMBPRINT> com0com\sys\x64\Release\com0com\com0com.sys
+signtool sign /fd SHA256 /sha1 <CERT_THUMBPRINT> com0com\sys\x64\Release\com0com\com0com.cat
 ```
 
 `signtool.exe` is at `C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe`.
@@ -124,7 +121,7 @@ signtool sign /fd SHA256 /sha1 808BDD474790DA8AC920E3D812E5E1FC4EC4E4E6 com0com\
 bcdedit /set testsigning on
 ```
 
-Reboot. Verify with `bcdedit /enum | findstr testsigning` — must show `Yes`.
+Reboot. Verify with `bcdedit /enum | findstr testsigning`. The output must show `Yes`.
 
 ## Installing and Testing the Driver
 
@@ -158,7 +155,7 @@ All assertions must pass, including binary data round-trip and rapid open/close 
 
 ## Running the Test Suite
 
-The full test suite covers 263 tests across four executables:
+The full test suite covers 264 tests across four executables:
 
 ```
 .\scripts\run_tests.ps1           # Build and run all tests
@@ -168,11 +165,14 @@ The full test suite covers 263 tests across four executables:
 Individual test executables:
 
 ```
-com0com\build\tests\Debug\setup_tests.exe      # 81 tests (setup.dll: params, comdb, mocks, integration, null-modem)
+com0com\build\tests\Debug\setup_tests.exe      # 82 tests (setup.dll: params, comdb, mocks, integration, null-modem)
 com0com\build\tests\Debug\com2tcp_tests.exe    # 60 tests (telnet protocol, com params, integration)
 com0com\build\tests\Debug\hub4com_tests.exe    # 64 tests (hubmsg, routes, filters, plugins, integration)
 dotnet test com0com\setupg.Tests\              # 58 tests (C# setup GUI logic)
 ```
+
+The main runner always excludes the driver tests tagged `[driver]`. Run
+`scripts\run_driver_tests.ps1` from an elevated shell to run them.
 
 The driver tests (`[driver]` tag in Catch2) require Administrator privileges, test signing
 enabled, and a CNCA0↔CNCB0 port pair created.
@@ -193,7 +193,7 @@ will NOT work for kernel drivers. The kernel requires the ELAM/Kernel Mode EKU
 
 ## Building the MSI Installer
 
-The WiX project is at `setup\wix\com0com.wixproj`. It produces `com0com.msi` — a
+The WiX project is at `setup\wix\com0com.wixproj`. It produces `com0com.msi`, a
 standalone Windows Installer package with a custom wizard UI and driver setup automation.
 
 ### Prerequisites
@@ -214,11 +214,11 @@ dotnet wix --version
 dotnet build setup\wix\com0com.wixproj
 ```
 
-Output: `setup\wix\build\com0com.msi` (~492 KB).
+Output: `setup\wix\build\com0com.msi` (about 252 KB).
 
-The build is self-contained — no NuGet package restore is needed beyond the
-`WixToolset.Sdk/7.0.0` SDK reference. The MSI embeds all files, the custom UI,
-and the deferred custom actions that invoke `setupc.exe`.
+`dotnet build` restores the `WixToolset.Sdk/7.0.0` SDK package automatically.
+The MSI embeds all files, the custom UI, and the deferred custom actions that
+invoke `setupc.exe`.
 
 ### What the Installer Does
 
@@ -278,13 +278,13 @@ then removes all installed files and registry entries.
 
 The installer presents a 7-page wizard sequence:
 
-1. **Welcome** — What's new in this build (from `whatsnew.rtf`)
-2. **License Agreement** — GPL-2.0 (from `license.rtf`), accept checkbox gates Next
-3. **Destination Folder** — PathEdit with Browse button
-4. **Custom Setup** — Feature tree (Core, PortPair)
-5. **Ready to Install** — Destination + features summary, test signing warning
-6. **Progress** — Action text + progress bar during installation
-7. **Installation Complete** — Success message with test signing reminder
+1. **Welcome**: What's new in this build (from `whatsnew.rtf`)
+2. **License Agreement**: GPL-2.0 (from `license.rtf`), accept checkbox gates Next
+3. **Destination Folder**: PathEdit with Browse button
+4. **Custom Setup**: Feature tree (Core, SetupGUI, PortPair)
+5. **Ready to Install**: Destination + features summary, test signing warning
+6. **Progress**: Action text + progress bar during installation
+7. **Installation Complete**: Success message with test signing reminder
 
 ### Directory Layout
 
@@ -302,6 +302,5 @@ com0com/
 │   ├── plugins/          # 16 filter/driver plugins
 │   └── tests/            # Catch2 test suite
 ├── scripts/              # Build and test automation
-├── scratchpad/           # Research, plans, and temporary files
-└── docs/                 # Architecture and design documents
+└── docs/                 # User documentation
 ```

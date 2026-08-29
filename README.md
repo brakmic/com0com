@@ -1,7 +1,7 @@
-# com0com — Virtual Serial Port Emulator for Windows
+# com0com: Virtual Serial Port Emulator for Windows
 
 The com0com project provides tools for creating and managing virtual serial
-(COM) port pairs on Windows. Output to one port appears as input on the other —
+(COM) port pairs on Windows. Output to one port appears as input on the other,
 a null-modem connection in software.
 
 Originally developed by Vyacheslav Frolov (2004–2012) and published on
@@ -20,12 +20,12 @@ source code and modernizes the build system for current toolchains.
 
 ## Documentation
 
-- **[BUILDING.md](BUILDING.md)** — prerequisites, build commands, driver signing,
-  test invocation
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** — system design, data flow, plugin API
-  reference, registry layout
-- **[TESTING.md](TESTING.md)** — test suite structure, tiers, driver test setup,
-  mock framework
+- **[BUILDING.md](docs/BUILDING.md)**: prerequisites, build commands, driver
+  signing, test invocation
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: system design, data flow, plugin
+  API reference, registry layout
+- **[TESTING.md](docs/TESTING.md)**: test suite structure, tiers, driver test
+  setup, mock framework
 
 The original 2004–2012 build system files (DDK `dirs`/`sources`, VC++ 2005
 `.vcproj`, NSIS installer) are archived in [`archive/`](archive/README.md).
@@ -35,9 +35,11 @@ The original 2004–2012 build system files (DDK `dirs`/`sources`, VC++ 2005
 ```
 # Prerequisites: Visual Studio 2026, WDK 10.0.26100, .NET 10
 
-# Build everything
-msbuild com0com\sys\com0com.vcxproj /p:Configuration=Release /p:Platform=x64
+# Build the driver and user-mode tools
 msbuild com0com\com0com.slnx /p:Configuration=Release /p:Platform=x64
+
+# Build hub4com and its plugins
+msbuild hub4com\hub4com.slnx /p:Configuration=Release /p:Platform=x64
 
 # Run tests
 .\scripts\run_tests.ps1
