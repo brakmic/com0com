@@ -226,7 +226,7 @@ NTSTATUS StartIrpClose(
   if (!pIoPort->exclusiveMode) {
     PIRP pIrp;
 
-    InterlockedDecrement(&pIoPort->pDevExt->openCount);
+    /* openCount already decremented in FdoPortClose */
     pIrp = pIoPort->irpQueues[C0C_QUEUE_CLOSE].pCurrent;
     pIrp->IoStatus.Information = 0;
     return STATUS_SUCCESS;
@@ -278,6 +278,20 @@ NTSTATUS FdoPortClose(IN PC0C_FDOPORT_EXTENSION pDevExt, IN PIRP pIrp)
   SetModemControl(pIoPort, C0C_MCR_OUT2, C0C_MCR_MASK | C0C_MCR_OPEN, &queueToComplete);
   FreeBuffer(&pIoPort->readBuf);
   SetBreakHolding(pIoPort, FALSE, &queueToComplete);
+
+  /*
+   * Decrement openCount here rather than in StartIrpClose.
+   * The close IRP is queued and StartIrpClose runs asynchronously.
+   * If a new CreateFile arrives before the queued close completes,
+   * InterlockedIncrement in FdoPortOpen sees openCount still at 1
+   * and rejects the open with STATUS_ACCESS_DENIED.
+   *
+   * Decrementing synchronously after cleanup (under spinlock) allows
+   * immediate re-open while ensuring cleanup finished first.
+   * Exclusive mode still defers to StartIrpClose for its timeout.
+   */
+  if (!pIoPort->exclusiveMode)
+    InterlockedDecrement(&pDevExt->openCount);
 
   KeReleaseSpinLock(pIoPort->pIoLock, oldIrql);
 

@@ -513,10 +513,10 @@ NTSTATUS AddFdoPort(IN PDRIVER_OBJECT pDrvObj, IN PDEVICE_OBJECT pPhDevObj)
   pDevExt->pIoPortLocal->handFlow.ControlHandShake = SERIAL_DTR_CONTROL;
   pDevExt->pIoPortLocal->handFlow.FlowReplace      = SERIAL_RTS_CONTROL;
 
-  pDevExt->pIoPortLocal->lineControl.WordLength    = 7;
-  pDevExt->pIoPortLocal->lineControl.Parity        = EVEN_PARITY;
+  pDevExt->pIoPortLocal->lineControl.WordLength    = 8;
+  pDevExt->pIoPortLocal->lineControl.Parity        = NO_PARITY;
   pDevExt->pIoPortLocal->lineControl.StopBits      = STOP_BIT_1;
-  pDevExt->pIoPortLocal->baudRate.BaudRate         = 1200;
+  pDevExt->pIoPortLocal->baudRate.BaudRate         = 9600;
 
   SetWriteDelay(pDevExt->pIoPortLocal);
 
