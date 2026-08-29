@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>..\requireAdministrator.manifest</ApplicationManifest>
+    <RootNamespace>com0com.Setup</RootNamespace>
+    <AssemblyName>setupg</AssemblyName>
+  </PropertyGroup>
+</Project>

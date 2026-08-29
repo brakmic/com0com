@@ -1,0 +1,15 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <Platform Name="AnyCPU" />
+  </Configurations>
+  <Project Path="setupg.csproj" Id="{D1E2F3A4-B5C6-7890-DEF1-234567890ABC}">
+    <BuildType Solution="Debug|AnyCPU" Project="Debug|AnyCPU" />
+    <BuildType Solution="Release|AnyCPU" Project="Release|AnyCPU" />
+  </Project>
+  <Project Path="..\setupg.Tests\setupg.Tests.csproj">
+    <BuildType Solution="Debug|AnyCPU" Project="Debug|AnyCPU" />
+    <BuildType Solution="Release|AnyCPU" Project="Release|AnyCPU" />
+  </Project>
+</Solution>
