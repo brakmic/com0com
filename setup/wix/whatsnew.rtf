@@ -1,0 +1,30 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat{\fonttbl{\f0\fswiss\fprq2\fcharset0 Segoe UI;}}
+{\*\generator com0com}\viewkind4\uc1\pard\sa200\sl276\slmult1\f0\fs20\lang1033
+\b Updated Edition -- What Has Changed\b0\par
+\par
+This installer contains an updated build of com0com with the following improvements over the original v3.0.0.0 release from 2012:\par
+\par
+\b Build System\b0\par
+- Modernized for Visual Studio 2026 and Windows Driver Kit 10.0.26100\par
+- MSBuild project files replace the obsolete DDK build system\par
+- WiX MSI installer replaces the NSIS installer\par
+\par
+\b Driver Improvements\b0\par
+- Default port settings updated to 8-N-1 at 9600 baud (was 7-E-1 at 1200)\par
+- Fixed ACCESS_DENIED error on rapid port open/close cycles\par
+- Kernel-mode signing certificate required (test signing mode supported)\par
+\par
+\b Tools\b0\par
+- New C# setup GUI targeting .NET 10 (replaces C++/CLI version)\par
+- setupc.exe console tool preserved for scripting and automation\par
+\par
+\b Testing\b0\par
+- Comprehensive test suite: 263 tests across 4 test executables\par
+- Null-modem data integrity verification including binary patterns\par
+- Plugin validation for all 16 hub4com filters and drivers\par
+\par
+\b Original Project\b0\par
+Developed by Vyacheslav Frolov (2004--2012).\par
+Licensed under GPL-2.0-or-later.\par
+Homepage: http://com0com.sourceforge.net/\par
+}

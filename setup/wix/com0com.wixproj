@@ -1,0 +1,27 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <TargetName>com0com</TargetName>
+    <AcceptEula>wix7</AcceptEula>
+    <SRC Condition="'$(SRC)' == ''">$(MSBuildProjectDirectory)\..\..\</SRC>
+    <SuppressIces>ICE20;ICE38;ICE43;ICE57</SuppressIces>
+    <SignOutput>true</SignOutput>
+    <TimestampServer>http://timestamp.digicert.com</TimestampServer>
+  </PropertyGroup>
+
+  <!-- Machine-specific signing settings live in local.props, never committed. -->
+  <Import Project="local.props" Condition="Exists('local.props')" />
+
+  <PropertyGroup>
+    <DefineConstants>SRC=$(SRC)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <Target Name="SignMsi" AfterTargets="Build"
+          Condition="'$(CertThumbprint)' != '' and '$(SigntoolPath)' != '' and Exists('$(SigntoolPath)')">
+    <Exec Command="&quot;$(SigntoolPath)&quot; sign /v /fd SHA256 /sha1 $(CertThumbprint) /tr $(TimestampServer) /td SHA256 &quot;$(TargetPath)&quot;" />
+  </Target>
+</Project>

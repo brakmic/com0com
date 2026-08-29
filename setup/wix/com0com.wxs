@@ -1,0 +1,497 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Package Name="com0com"
+           Manufacturer="Vyacheslav Frolov"
+           Version="3.0.0.0"
+           UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890"
+           Scope="perMachine"
+           Language="1033">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- .NET 10 Desktop Runtime detection (required by setupg.exe).
+         Searches 2 levels deep because runtime dirs use patch naming (10.0.10).
+         System.Windows.Forms.dll is present in every WindowsDesktop runtime. -->
+    <Property Id="DOTNET10_RUNTIME">
+      <DirectorySearch Id="DotNetSearch"
+                       Path="[ProgramFiles64Folder]dotnet\shared\Microsoft.WindowsDesktop.App"
+                       Depth="2">
+        <FileSearch Name="System.Windows.Forms.dll" MinVersion="10.0.0.0" />
+      </DirectorySearch>
+    </Property>
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLDIR" Name="com0com" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="StartMenuShortcuts" Name="com0com" />
+    </StandardDirectory>
+
+    <Feature Id="Core" Title="com0com core files"
+             Description="Kernel driver, console setup tools, and documentation"
+             Display="expand" Level="1" AllowAdvertise="no">
+      <ComponentGroupRef Id="Files" />
+      <ComponentGroupRef Id="Registry" />
+      <ComponentGroupRef Id="Shortcuts" />
+    </Feature>
+
+    <Feature Id="SetupGUI" Title="Setup GUI (setupg.exe)"
+             Description="Graphical configuration tool for COM port pairs. Requires .NET Desktop Runtime 10.0."
+             Display="expand" Level="1" AllowAdvertise="no">
+      <Level Value="0" Condition="NOT DOTNET10_RUNTIME" />
+      <Level Value="1" Condition="DOTNET10_RUNTIME" />
+      <ComponentGroupRef Id="SetupGUIFiles" />
+      <ComponentGroupRef Id="SetupGUIShortcuts" />
+    </Feature>
+
+    <Feature Id="PortPair" Title="Default null-modem port pair"
+             Description="Creates a linked COM port pair (default names CNCA0 and CNCB0). Ports can be renamed to COM4, COM5 etc. after installation using setupc.exe."
+             Display="expand" Level="2" AllowAdvertise="no">
+      <ComponentRef Id="C_PortPair" />
+    </Feature>
+
+    <ComponentGroup Id="Files" Directory="INSTALLDIR">
+      <Component Id="C_com0com_sys"><File Source="$(SRC)com0com\sys\x64\Release\com0com\com0com.sys" /></Component>
+      <Component Id="C_com0com_cat"><File Source="$(SRC)com0com\sys\x64\Release\com0com\com0com.cat" /></Component>
+      <Component Id="C_com0com_inf"><File Source="$(SRC)com0com\sys\x64\Release\com0com\com0com.inf" /></Component>
+      <Component Id="C_cncport_inf"><File Source="$(SRC)com0com\cncport.inf" /></Component>
+      <Component Id="C_comport_inf"><File Source="$(SRC)com0com\comport.inf" /></Component>
+      <Component Id="C_setup_dll"><File Source="$(SRC)com0com\setup\build\x64\Release\setup.dll" /></Component>
+      <Component Id="C_setupc_exe"><File Id="filSetupC" Source="$(SRC)com0com\setupc\build\x64\Release\setupc.exe" /></Component>
+      <Component Id="C_readme"><File Source="$(SRC)com0com\ReadMe.txt" /></Component>
+      <Component Id="C_license"><File Source="$(SRC)com0com\license.txt" /></Component>
+      <Component Id="C_changes"><File Source="$(SRC)CHANGES.md" /></Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="SetupGUIFiles" Directory="INSTALLDIR">
+      <Component Id="C_setupg_exe"><File Id="filSetupG" Source="$(SRC)com0com\setupg\build\Release\setupg.exe" /></Component>
+      <Component Id="C_setupg_dll"><File Source="$(SRC)com0com\setupg\build\Release\setupg.dll" /></Component>
+      <Component Id="C_setupg_rtc"><File Source="$(SRC)com0com\setupg\build\Release\setupg.runtimeconfig.json" /></Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="SetupGUIShortcuts" Directory="StartMenuShortcuts">
+      <Component Id="C_ShortcutSetupG">
+        <Shortcut Id="scSetupG"
+                  Name="com0com Setup (GUI)"
+                  Description="Configure virtual COM port pairs"
+                  Target="[#filSetupG]"
+                  WorkingDirectory="INSTALLDIR"
+                  Advertise="no" />
+        <RegistryValue Root="HKLM" Key="Software\com0com"
+                       Name="scSetupG" Value="1" Type="integer" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="Shortcuts" Directory="StartMenuShortcuts">
+      <Component Id="C_ShortcutSetupC">
+        <Shortcut Id="scSetupC"
+                  Name="com0com Setup (Console)"
+                  Description="Configure virtual COM port pairs from the command line. Requires Administrator privileges."
+                  Target="[#filSetupC]"
+                  WorkingDirectory="INSTALLDIR"
+                  Advertise="no" />
+        <RemoveFolder Id="RemoveStartMenu" Directory="StartMenuShortcuts" On="uninstall" />
+        <RegistryValue Root="HKLM" Key="Software\com0com"
+                       Name="scSetupC" Value="1" Type="integer" KeyPath="yes" />
+      </Component>
+      <Component Id="C_ShortcutUninstall">
+        <Shortcut Id="scUninstall"
+                  Name="Uninstall com0com"
+                  Description="Remove com0com from this computer"
+                  Target="[System64Folder]msiexec.exe"
+                  Arguments="/x [ProductCode]"
+                  WorkingDirectory="INSTALLDIR"
+                  Advertise="no" />
+        <RegistryValue Root="HKLM" Key="Software\com0com"
+                       Name="scUninstall" Value="1" Type="integer" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="Registry" Directory="INSTALLDIR">
+      <Component Id="C_reg_installdir">
+        <RegistryKey Root="HKLM" Key="Software\com0com">
+          <RegistryValue Name="Install_Dir" Value="[INSTALLDIR]" Type="string" />
+        </RegistryKey>
+      </Component>
+      <Component Id="C_reg_uninstall">
+        <RegistryKey Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\com0com">
+          <RegistryValue Name="DisplayName" Value="Null-modem emulator (com0com)" Type="string" />
+          <RegistryValue Name="Publisher" Value="Vyacheslav Frolov" Type="string" />
+          <RegistryValue Name="UninstallString" Value="[System64Folder]msiexec.exe /x [ProductCode]" Type="string" />
+          <RegistryValue Name="QuietUninstallString" Value="[System64Folder]msiexec.exe /x [ProductCode] /qn" Type="string" />
+          <RegistryValue Name="NoModify" Value="1" Type="integer" />
+          <RegistryValue Name="NoRepair" Value="1" Type="integer" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+    <Component Id="C_PortPair" Directory="INSTALLDIR">
+      <RegistryKey Root="HKLM" Key="Software\com0com">
+        <RegistryValue Name="PortPairInstalled" Value="1" Type="integer" />
+      </RegistryKey>
+    </Component>
+
+    <CustomAction Id="ExecPreinstall" FileRef="filSetupC" ExeCommand="--silent preinstall"
+                  Execute="deferred" Return="ignore" Impersonate="no" />
+    <CustomAction Id="ExecUpdate" FileRef="filSetupC" ExeCommand="--silent update"
+                  Execute="deferred" Return="ignore" Impersonate="no" />
+    <CustomAction Id="ExecInfclean" FileRef="filSetupC" ExeCommand="--silent infclean"
+                  Execute="deferred" Return="ignore" Impersonate="no" />
+    <CustomAction Id="ExecPortPair" FileRef="filSetupC" ExeCommand="--silent install 0 PortName=CNCA0 PortName=CNCB0"
+                  Execute="deferred" Return="ignore" Impersonate="no" />
+    <CustomAction Id="ExecUninstall" FileRef="filSetupC" ExeCommand="--silent uninstall"
+                  Execute="deferred" Return="ignore" Impersonate="no" />
+
+    <InstallExecuteSequence>
+      <Custom Action="ExecPreinstall" After="InstallFiles" Condition="&amp;Core=3" />
+      <Custom Action="ExecUpdate" After="ExecPreinstall" Condition="&amp;Core=3" />
+      <Custom Action="ExecInfclean" After="ExecUpdate" Condition="&amp;Core=3" />
+      <Custom Action="ExecPortPair" After="ExecInfclean" Condition="&amp;PortPair=3 AND &amp;Core=3" />
+      <Custom Action="ExecUninstall" Before="RemoveFiles"
+              Condition="&amp;Core=2 AND NOT UPGRADINGPRODUCTCODE" />
+    </InstallExecuteSequence>
+
+    <UI Id="com0comUI">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Segoe UI" Size="8" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Segoe UI" Size="9" Bold="yes" />
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="ErrorDialog" Value="FatalError" />
+      <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+      <!-- Feature tree text: status line entries -->
+      <UIText Id="AbsentPath" Value="Entire feature will be unavailable" />
+      <UIText Id="LocalPath" Value="Will be installed on local hard drive" />
+      <UIText Id="SourcePath" Value="Will be run from source" />
+      <UIText Id="RemovePath" Value="Will be removed from local hard drive" />
+      <!-- Feature tree text: dropdown menu entries -->
+      <UIText Id="MenuAbsent" Value="Entire feature will be unavailable" />
+      <UIText Id="MenuLocal" Value="Will be installed on local hard drive" />
+      <UIText Id="MenuSource" Value="Will be run from source" />
+      <UIText Id="MenuRemove" Value="Will be removed" />
+      <UIText Id="MenuAdvertise" Value="Feature will be installed when required" />
+      <UIText Id="MenuAllLocal" Value="All features will be installed locally" />
+      <UIText Id="MenuAllAbsent" Value="All features will be unavailable" />
+      <UIText Id="MenuAllRemove" Value="All features will be removed" />
+
+      <!-- ===== Welcome with changes info ===== -->
+      <Dialog Id="WelcomeDlg" Width="370" Height="270"
+              Title="[ProductName] Setup, Updated Edition">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Welcome to com0com, Updated Edition" />
+        <Control Id="InfoText" Type="ScrollableText" X="20" Y="30" Width="330" Height="155"
+                 Sunken="yes" TabSkip="no">
+          <Text SourceFile="whatsnew.rtf" />
+        </Control>
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17"
+                 Disabled="yes" Text="&amp;Back" />
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="LicenseAgreementDlg" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== License agreement ===== -->
+      <Dialog Id="LicenseAgreementDlg" Width="370" Height="270"
+              Title="[ProductName] License Agreement">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}End-User License Agreement" />
+        <Control Id="LicenseText" Type="ScrollableText" X="20" Y="30" Width="330" Height="155"
+                 Sunken="yes" TabSkip="no">
+          <Text SourceFile="license.rtf" />
+        </Control>
+        <Control Id="AcceptCheckBox" Type="CheckBox" X="20" Y="195" Width="330" Height="18"
+                 CheckBoxValue="1" Property="LicenseAccepted"
+                 Text="I &amp;accept the terms of the License Agreement" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17"
+                 Text="&amp;Back">
+          <Publish Event="NewDialog" Value="WelcomeDlg" />
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Next"
+                 DisableCondition="LicenseAccepted &lt;&gt; &quot;1&quot;"
+                 EnableCondition="LicenseAccepted = &quot;1&quot;">
+          <Publish Event="NewDialog" Value="InstallDirDlg"
+                   Condition="LicenseAccepted = &quot;1&quot;" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== Install directory ===== -->
+      <Dialog Id="InstallDirDlg" Width="370" Height="270"
+              Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Destination Folder" />
+        <Control Id="FolderLabel" Type="Text" X="20" Y="50" Width="330" Height="10"
+                 Text="Install com0com to:" />
+        <Control Id="FolderEdit" Type="PathEdit" X="20" Y="63" Width="270" Height="16"
+                 Property="WIXUI_INSTALLDIR" Sunken="yes" Indirect="yes" />
+        <Control Id="BrowseBtn" Type="PushButton" X="296" Y="62" Width="56" Height="17"
+                 Text="Br&amp;owse...">
+          <Publish Event="SpawnDialog" Value="BrowseDlg" />
+        </Control>
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17"
+                 Text="&amp;Back">
+          <Publish Event="NewDialog" Value="LicenseAgreementDlg" />
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="CustomizeDlg" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== Feature selection ===== -->
+      <Dialog Id="CustomizeDlg" Width="370" Height="270"
+              Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Custom Setup" />
+        <Control Id="FeatureLabel" Type="Text" X="20" Y="30" Width="330" Height="10"
+                 Text="Select the features to install:" />
+        <Control Id="FeatureTree" Type="SelectionTree" X="20" Y="42" Width="330" Height="150"
+                 Property="_BrowseProperty" Sunken="yes" TabSkip="no" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17"
+                 Text="&amp;Back">
+          <Publish Event="NewDialog" Value="InstallDirDlg" />
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="VerifyReadyDlg" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== Browse for folder ===== -->
+      <Dialog Id="BrowseDlg" Width="370" Height="270"
+              Title="[ProductName] Setup">
+        <Control Id="BrowseTitle" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Browse for installation folder" />
+        <Control Id="BrowseTree" Type="DirectoryList" X="20" Y="50" Width="270" Height="140"
+                 Property="_BrowseProperty" Sunken="yes" TabSkip="no"
+                 Indirect="yes" />
+        <Control Id="PathLabel" Type="Text" X="20" Y="200" Width="50" Height="10"
+                 Text="Path:" />
+        <Control Id="PathEdit" Type="PathEdit" X="70" Y="198" Width="220" Height="16"
+                 Property="_BrowseProperty" Sunken="yes" Indirect="yes" />
+        <Control Id="OK" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="OK">
+          <Publish Event="SetTargetPath" Value="[_BrowseProperty]" Order="1" />
+          <Publish Event="EndDialog" Value="Return" Order="2" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="Cancel">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== Verify ready ===== -->
+      <Dialog Id="VerifyReadyDlg" Width="370" Height="270"
+              Title="[ProductName] Setup" NoMinimize="yes" TrackDiskSpace="yes">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Ready to install com0com" />
+        <Control Id="InfoLine1" Type="Text" X="20" Y="30" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Destination: [INSTALLDIR]" />
+        <Control Id="InfoLine2" Type="Text" X="20" Y="42" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Features: [ADDLOCAL]" />
+        <Control Id="InfoLine3" Type="Text" X="20" Y="60" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="The com0com kernel driver requires test signing mode." />
+        <Control Id="InfoLine4" Type="Text" X="20" Y="72" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Run this command from an administrator prompt:" />
+        <Control Id="InfoLine5" Type="Text" X="20" Y="84" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="bcdedit /set testsigning on" />
+        <Control Id="InfoLine6" Type="Text" X="20" Y="96" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="(reboot required after enabling test signing)" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17"
+                 Text="&amp;Back">
+          <Publish Event="NewDialog" Value="CustomizeDlg" />
+        </Control>
+        <Control Id="Install" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Install">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== Progress ===== -->
+      <Dialog Id="ProgressDlg" Width="370" Height="270"
+              Title="[ProductName] Setup" Modeless="yes">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Installing com0com" />
+        <Control Id="ActionText" Type="Text" X="70" Y="100" Width="285" Height="20"
+                 Transparent="yes" NoPrefix="yes">
+          <Subscribe Event="ActionText" Attribute="Text" />
+        </Control>
+        <Control Id="ProgressBar" Type="ProgressBar" X="20" Y="120" Width="330" Height="16"
+                 ProgressBlocks="yes" Text="Progress%" />
+        <Control Id="StatusLabel" Type="Text" X="20" Y="140" Width="50" Height="10"
+                 Text="Status:" />
+        <Control Id="ActionData" Type="Text" X="70" Y="140" Width="285" Height="20"
+                 Transparent="yes" NoPrefix="yes">
+          <Subscribe Event="ActionData" Attribute="Text" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== Exit / success ===== -->
+      <Dialog Id="ExitDialog" Width="370" Height="270"
+              Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Installation Complete" />
+        <Control Id="ExitLine1" Type="Text" X="20" Y="50" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="com0com has been installed successfully." />
+        <Control Id="ExitLine2" Type="Text" X="20" Y="68" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="IMPORTANT: Test signing must be enabled to use the driver." />
+        <Control Id="ExitLine3" Type="Text" X="20" Y="80" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Run this command from an administrator prompt:" />
+        <Control Id="ExitLine4" Type="Text" X="20" Y="92" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="bcdedit /set testsigning on" />
+        <Control Id="ExitLine5" Type="Text" X="20" Y="110" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="You must reboot after enabling test signing." />
+        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Finish">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Disabled="yes" Text="Cancel" />
+      </Dialog>
+
+      <!-- ===== Fatal error ===== -->
+      <Dialog Id="FatalError" Width="370" Height="270"
+              Title="[ProductName] Setup" ErrorDialog="yes">
+        <Control Id="ErrorText" Type="Text" X="20" Y="50" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="The installer encountered an error." />
+        <Control Id="ErrorLine2" Type="Text" X="20" Y="68" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Check the installation log for details:" />
+        <Control Id="ErrorLine3" Type="Text" X="20" Y="80" Width="330" Height="10"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="msiexec /i com0com.msi /l*v install.log" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Installation Failed" />
+        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Finish">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Disabled="yes" Text="Cancel" />
+      </Dialog>
+
+      <!-- ===== User exit (cancelled by user) ===== -->
+      <Dialog Id="UserExit" Width="370" Height="270"
+              Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Installation Cancelled" />
+        <Control Id="InfoText" Type="Text" X="20" Y="50" Width="330" Height="150"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Setup was cancelled. No changes were made to your system." />
+        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Finish">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Disabled="yes" Text="Cancel" />
+      </Dialog>
+
+      <!-- ===== Files in use ===== -->
+      <Dialog Id="FilesInUse" Width="370" Height="270"
+              Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="{\WixUI_Font_Title}Files in Use" />
+        <Control Id="InfoText" Type="Text" X="20" Y="30" Width="330" Height="40"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="The following applications are using files that must be updated. Close these applications and click Retry, or click Ignore to continue." />
+        <Control Id="FileList" Type="ListBox" X="20" Y="80" Width="330" Height="110"
+                 Property="FileInUseProcess" Sunken="yes" TabSkip="no" />
+        <Control Id="Retry" Type="PushButton" X="160" Y="243" Width="56" Height="17"
+                 Default="yes" Text="&amp;Retry">
+          <Publish Event="EndDialog" Value="Retry" />
+        </Control>
+        <Control Id="Ignore" Type="PushButton" X="220" Y="243" Width="56" Height="17"
+                 Text="&amp;Ignore">
+          <Publish Event="EndDialog" Value="Ignore" />
+        </Control>
+        <Control Id="Exit" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                 Cancel="yes" Text="E&amp;xit">
+          <Publish Event="EndDialog" Value="Exit" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== Cancel confirmation ===== -->
+      <Dialog Id="CancelDlg" Width="260" Height="85"
+              Title="[ProductName] Setup">
+        <Control Id="Text" Type="Text" X="48" Y="15" Width="194" Height="20"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Are you sure you want to cancel?" />
+        <Control Id="Yes" Type="PushButton" X="72" Y="57" Width="56" Height="17"
+                 Default="yes" Text="Yes">
+          <Publish Event="EndDialog" Value="Exit" />
+        </Control>
+        <Control Id="No" Type="PushButton" X="132" Y="57" Width="56" Height="17"
+                 Cancel="yes" Text="No">
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+      </Dialog>
+
+      <!-- ===== UI Sequences ===== -->
+      <InstallUISequence>
+        <Show Dialog="WelcomeDlg" Before="ProgressDlg" />
+        <Show Dialog="ProgressDlg" Before="ExecuteAction" />
+        <Show Dialog="ExitDialog" OnExit="success" />
+        <Show Dialog="FatalError" OnExit="error" />
+        <Show Dialog="UserExit" OnExit="cancel" />
+      </InstallUISequence>
+
+      <AdminUISequence>
+        <Show Dialog="WelcomeDlg" Before="ProgressDlg" />
+        <Show Dialog="ProgressDlg" Before="ExecuteAction" />
+        <Show Dialog="ExitDialog" OnExit="success" />
+        <Show Dialog="FatalError" OnExit="error" />
+        <Show Dialog="UserExit" OnExit="cancel" />
+      </AdminUISequence>
+    </UI>
+
+  </Package>
+</Wix>
