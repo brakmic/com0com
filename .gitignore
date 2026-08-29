@@ -1,0 +1,25 @@
+# Build artifacts
+build/
+obj/
+bin/
+x64/
+Debug/
+Release/
+*.pdb
+*.ilk
+*.obj
+*.log
+build_latest.txt
+
+# Compiled binaries
+*.sys
+*.cat
+*.cer
+
+# WiX temp
+.wix/
+
+# WiX outputs
+setup/*.msi
+setup/*.cab
+setup/*.wixpdb
