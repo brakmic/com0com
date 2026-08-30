@@ -14,6 +14,17 @@
   decrement was happening asynchronously in the queued close handler. Fixed by
   moving it to the synchronous close path under the spinlock.
 
+- **Extended IOCTL response offsets**: The extended `GET_MODEM_CONTROL`
+  response wrote its signature at a pointer-sized offset, overrunning small
+  output buffers on x64. The extended `LSRMST_INSERT` handler used unaligned
+  typed reads and writes. Both now use protocol-sized offsets and explicit
+  byte copies.
+
+- **Pool allocation APIs migrated**: All driver allocations go through
+  `ExAllocatePool2` with explicit paged or non-paged flags. Non-paged buffers
+  are non-executable by default, and the warning 4996 suppression was removed
+  from the project.
+
 ### Build system
 
 - **WDK 10.0.26100 + Visual Studio 2026**: The driver now compiles with the

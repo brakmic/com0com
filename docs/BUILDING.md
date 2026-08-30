@@ -65,9 +65,8 @@ shipped before Visual Studio 2026:
 1. `VisualStudioVersion` is overridden to `17.0`. The WDK build task DLLs are version 17.0
    but VS 2026 sets this property to 18.0, causing a load failure.
 
-2. `TreatWarningsAsErrors` is disabled and warning 4996 is suppressed. The WDK deprecates
-   `ExAllocatePoolWithTag` in favor of `ExAllocatePool2`. Migrating to the new API would
-   require changes to every call site.
+2. `TreatWarningsAsErrors` is disabled. The WDK targets for this driver model
+   emit informational warnings that would otherwise break the build.
 
 3. `SkipPackageVerification` is set to true. The WDK's `InfVerif.dll` (x86 variant) is
    not included in all WDK installations.
@@ -75,8 +74,18 @@ shipped before Visual Studio 2026:
 4. `SignMode` is set to Off and `DriverSign_Type` to 0. The driver is
    test-signed as a separate step after the build, see Driver Signing below.
 
+The WDK Release build injects `/d1nodatetime`, which disables the `__DATE__` and
+`__TIME__` macros. `trace.c` does not rely on them.
+
+All driver pool allocations go through `ExAllocatePool2` via the
+`C0C_ALLOCATE_POOL` macros in `sys/com0com.h`. Non-paged buffers are
+non-executable by default.
+
 Output is at `com0com\sys\x64\Release\com0com\com0com.sys` together with the
-INF and CAT files.
+INF and CAT files. To deploy a rebuilt driver on a machine with an existing
+installation, update the driver package with `devcon install com0com.inf
+root\com0com` after regenerating and signing the catalog. A plain file copy
+into `System32\drivers` gets overwritten by PnP from the DriverStore.
 
 ### Driver Defects Fixed
 

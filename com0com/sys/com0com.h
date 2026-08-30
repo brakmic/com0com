@@ -576,9 +576,9 @@ VOID InsertRemoteLc(
 
 #define C0C_TAG 'c0c'
 #define C0C_ALLOCATE_POOL(PoolType, NumberOfBytes) \
-    ExAllocatePoolWithTag(PoolType, NumberOfBytes, C0C_TAG)
+    ExAllocatePool2(((PoolType) == PagedPool) ? POOL_FLAG_PAGED : POOL_FLAG_NON_PAGED, (NumberOfBytes), C0C_TAG)
 #define C0C_ALLOCATE_POOL_WITH_QUOTA(PoolType, NumberOfBytes) \
-    ExAllocatePoolWithQuotaTag(PoolType, NumberOfBytes, C0C_TAG)
+    ExAllocatePool2((((PoolType) == PagedPool) ? POOL_FLAG_PAGED : POOL_FLAG_NON_PAGED) | POOL_FLAG_USE_QUOTA, (NumberOfBytes), C0C_TAG)
 #define C0C_FREE_POOL(P) \
     ExFreePool(P) /*ExFreePoolWithTag(P, C0C_TAG)*/
 

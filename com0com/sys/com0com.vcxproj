@@ -44,10 +44,9 @@
   <PropertyGroup>
     <!-- InfVerif.dll (x86) is not included in all WDK installs. -->
     <SkipPackageVerification>true</SkipPackageVerification>
-    <!-- Suppress deprecation warnings for legacy pool allocation APIs.
-         ExAllocatePoolWithTag/ExAllocatePoolWithQuotaTag are deprecated in
-         favor of ExAllocatePool2, but the newer API requires WDK 10.0.26100+
-         and structural changes to every call site. -->
+    <!-- Suppress warnings as errors is disabled because the WDK targets emit
+         informational warnings for this driver model. Treating them as errors
+         breaks the build with WDK 10.0.26100 and Visual Studio 2026. -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <!-- Disable driver signing during development builds.
          Signing requires a code-signing certificate configured in the project.
@@ -58,7 +57,6 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
