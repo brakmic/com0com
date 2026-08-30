@@ -2,7 +2,7 @@
 #
 # Builds and runs C++ Catch2 tests and C# xUnit tests.
 # Usage:
-#   .\scripts\run_tests.ps1              # run all tests
+#   .\scripts\run_tests.ps1              # run all non-driver tests
 #   .\scripts\run_tests.ps1 -SkipBuild   # run without rebuilding
 #
 # Driver tests tagged [driver] are not part of this run. They need an
@@ -44,7 +44,8 @@ function Write-Header($text) {
 
 function Invoke-TestExe($exePath, $name, [string[]]$extraArgs = @()) {
     if (-not (Test-Path $exePath)) {
-        Write-Host "  SKIP: $name (binary not found: $exePath)" -ForegroundColor Yellow
+        Write-Host "  FAIL: $name (binary not found: $exePath)" -ForegroundColor Red
+        $script:failedProjects += $name
         return
     }
 
@@ -98,7 +99,7 @@ if (-not $SkipBuild) {
 
     Write-Header "Building C# test project"
     Push-Location "$WorkspaceRoot\com0com\setupg.Tests"
-    dotnet build --no-restore 2>$null
+    dotnet build 2>$null
     if ($LASTEXITCODE -ne 0) {
         Pop-Location
         Write-Host "ERROR: C# build failed. Aborting." -ForegroundColor Red
@@ -125,14 +126,16 @@ Invoke-TestExe "$BuildDir\hub4com_tests.exe" "hub4com (hubmsg + GO/SO + ROUTINE_
 Write-Header "C# Unit Tests"
 Push-Location "$WorkspaceRoot\com0com\setupg.Tests"
 $csharpResult = dotnet test --no-restore --no-build 2>&1
+$csharpExitCode = $LASTEXITCODE
 Pop-Location
 
 $csharpMatch = $csharpResult | Select-String "Passed.*Failed.*Total"
 if ($csharpMatch) {
     Write-Host "  $($csharpMatch.Line.Trim())" -ForegroundColor White
-    if ($csharpResult | Select-String "Failed!") {
-        $script:failedProjects += "C# setupg.Tests"
-    }
+}
+if ($csharpExitCode -ne 0) {
+    Write-Host "  FAIL: dotnet test exit code $csharpExitCode" -ForegroundColor Red
+    $script:failedProjects += "C# setupg.Tests"
 }
 
 # ═══════════════════════════════════════════════════════════════════

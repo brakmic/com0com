@@ -17,7 +17,7 @@ The test suite covers 266 tests across four executables. All tests are run with
 ## Quick Start
 
 ```
-# Build and run all tests
+# Build and run all non-driver tests
 .\scripts\run_tests.ps1
 
 # Run without rebuilding
