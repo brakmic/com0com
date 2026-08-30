@@ -1,7 +1,10 @@
 #include "catch_amalgamated.hpp"
 #include <windows.h>
+#include <ntddser.h>
 #include <cstdio>
 #include <cstring>
+
+#include "../../include/cncext.h"
 
 static const char *PORT_A = "\\\\.\\CNCA0";
 static const char *PORT_B = "\\\\.\\CNCB0";
@@ -164,4 +167,47 @@ TEST_CASE("Rapid open/close does not cause ACCESS_DENIED", "[driver]")
         // Immediate re-open happens at top of next iteration
     }
     SUCCEED("20 rapid open/close cycles completed without ACCESS_DENIED");
+}
+
+TEST_CASE("Extended GET_MODEM_CONTROL places signature at protocol offset", "[driver]")
+{
+    // Regression test for the x64 buffer overrun where the extended
+    // IOCTL_SERIAL_GET_MODEM_CONTROL response copied the signature at
+    // sizeof(PULONG) instead of sizeof(ULONG). The wire format is
+    // ULONG modem control followed by the c0c signature.
+    static const ULONG sizes[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 32, 64};
+
+    HANDLE h = OpenPort(PORT_A);
+
+    BYTE inBuf[C0CE_SIGNATURE_SIZE];
+    memcpy(inBuf, C0CE_SIGNATURE, C0CE_SIGNATURE_SIZE);
+
+    for (ULONG outSize : sizes) {
+        CAPTURE(outSize);
+
+        BYTE outBuf[64];
+        memset(outBuf, 0xCC, sizeof(outBuf));
+        DWORD returned = 0;
+        BOOL ok = DeviceIoControl(h, IOCTL_SERIAL_GET_MODEM_CONTROL,
+                                  inBuf, sizeof(inBuf),
+                                  outBuf, outSize, &returned, NULL);
+        if (outSize < sizeof(ULONG)) {
+            REQUIRE(!ok);
+            REQUIRE(GetLastError() == ERROR_INSUFFICIENT_BUFFER);
+            continue;
+        }
+
+        REQUIRE(ok);
+        if (outSize >= sizeof(ULONG) + C0CE_SIGNATURE_SIZE) {
+            REQUIRE(returned == outSize);
+            REQUIRE(memcmp(outBuf + sizeof(ULONG), C0CE_SIGNATURE,
+                           C0CE_SIGNATURE_SIZE) == 0);
+            for (DWORD i = sizeof(ULONG) + C0CE_SIGNATURE_SIZE; i < outSize; i++)
+                REQUIRE(outBuf[i] == 0);
+        } else {
+            REQUIRE(returned == sizeof(ULONG));
+        }
+    }
+
+    CloseHandle(h);
 }
