@@ -100,8 +100,14 @@ This build includes two fixes over the upstream v3.0.0.0 source:
 
 ## Driver Signing
 
-64-bit Windows requires all kernel drivers to be signed. For development and testing,
-use a self-signed certificate with test signing mode.
+64-bit Windows requires all kernel drivers to be signed. For development and
+testing, use a self-signed certificate with test signing mode.
+
+For production release, the package must be signed with a certificate that
+chains to Microsoft, either through WHQL attestation signing or an EV
+certificate submitted to the Windows Hardware Developer Center. Test-signed
+packages only load on machines with test signing enabled and are not
+suitable for distribution.
 
 ### Create a test certificate (once)
 
