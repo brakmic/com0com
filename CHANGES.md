@@ -60,6 +60,9 @@
     Early Launch Anti-Malware EKU was validated as unnecessary for test
     signing on Windows 11 and removed.
 
+  - The three driver INFs now advertise NTamd64 only, matching the x64-only
+    build, and share the same DriverVer.
+
 ### Documentation
 
 - `docs/BUILDING.md`: build prerequisites, driver signing, test invocation
