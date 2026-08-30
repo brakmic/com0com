@@ -9,17 +9,20 @@ $root = New-SelfSignedCertificate -Type Custom `
     -TextExtension @('2.5.29.19={critical}{text}ca=1&pathLength=2')
 Write-Host "Root CA thumbprint: $($root.Thumbprint)"
 
-# Create kernel code signing cert with proper EKU
+# Create kernel code signing cert with the code signing EKU
 $code = New-SelfSignedCertificate -Type Custom `
     -Subject 'CN=com0com Kernel Signing' `
     -Signer $root `
     -KeyUsage DigitalSignature `
     -CertStoreLocation Cert:\CurrentUser\My `
-    -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3,1.3.6.1.4.1.311.61.4.1')
+    -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3')
 Write-Host "Kernel cert thumbprint: $($code.Thumbprint)"
 
-$outDir = Join-Path $PSScriptRoot "..\com0com\sys\x64\Release"
-$outDir = (Resolve-Path $outDir).Path
+$outDir = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot "..\com0com\sys\x64\Release"))
+
+# The directory does not exist before the first driver build.
+New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
 # Export root and install to Trusted Root
 $rootFile = Join-Path $outDir "root_ca.cer"

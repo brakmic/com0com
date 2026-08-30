@@ -108,12 +108,14 @@ use a self-signed certificate with test signing mode.
 Run `scripts\create_certs.ps1` as Administrator. This script creates:
 
 - A root CA certificate (`com0com Test Root CA`) installed to `LocalMachine\Root`
-- A kernel signing certificate (`com0com Kernel Signing`) with EKU
-  `1.3.6.1.4.1.311.61.4.1` (Kernel Mode Code Signing), installed to
-  `LocalMachine\TrustedPublisher`
+- A kernel signing certificate (`com0com Kernel Signing`) with the code
+  signing EKU `1.3.6.1.5.5.7.3.3`, installed to `LocalMachine\TrustedPublisher`
 
 The script prints the thumbprints of both certificates. Use the kernel signing
-certificate's thumbprint for the signing commands below.
+certificate's thumbprint for the signing commands below. In test signing mode,
+the code signing EKU alone is sufficient. The Early Launch Anti-Malware EKU
+(`1.3.6.1.4.1.311.61.4.1`) is only needed for ELAM drivers, which com0com
+is not.
 
 ### Sign the driver (every build)
 
@@ -191,14 +193,14 @@ enabled, and a CNCA0↔CNCB0 port pair created.
 The script `scripts\create_certs.ps1` creates certificates with these properties:
 
 - Root CA: `CN=com0com Test Root CA`, Basic Constraints CA=TRUE, pathLen=2
-- Signing cert: `CN=com0com Kernel Signing`, EKU 1.3.6.1.5.5.7.3.3 + 1.3.6.1.4.1.311.61.4.1
+- Signing cert: `CN=com0com Kernel Signing`, EKU 1.3.6.1.5.5.7.3.3 (code signing)
 
 Both are installed to the LocalMachine store (Root and TrustedPublisher respectively).
 The script requires Administrator privileges.
 
-A simple self-signed certificate created with `New-SelfSignedCertificate -Type CodeSigningCert`
-will NOT work for kernel drivers. The kernel requires the ELAM/Kernel Mode EKU
-(`1.3.6.1.4.1.311.61.4.1`) even in test signing mode on Windows 11.
+The code signing EKU alone is sufficient for kernel test signing on Windows 11.
+The Early Launch Anti-Malware EKU (`1.3.6.1.4.1.311.61.4.1`) is not required
+and is only appropriate for ELAM drivers.
 
 ## Building the MSI Installer
 

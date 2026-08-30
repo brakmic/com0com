@@ -54,6 +54,12 @@
 - **Plugin validation**: All 16 hub4com plugins are validated for correct
   `LoadLibrary`, `InitA`, routine tables, types, and metadata.
 
+- **Build system**
+
+  - The test certificate script now issues the code signing EKU only. The
+    Early Launch Anti-Malware EKU was validated as unnecessary for test
+    signing on Windows 11 and removed.
+
 ### Documentation
 
 - `docs/BUILDING.md`: build prerequisites, driver signing, test invocation
