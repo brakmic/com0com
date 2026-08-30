@@ -126,6 +126,59 @@ setupc --silent install 0 PortName=CNCA0 PortName=CNCB0
 setup_tests.exe "[driver]"
 ```
 
+## Driver Verifier and Memory Integrity
+
+Driver Verifier catches pool corruption, IRQL violations, leaked IRPs, and
+deadlocks. Memory Integrity uses hypervisor-enforced code integrity to block
+invalid code execution. The driver test group should pass under both before a
+release is declared Windows 11 ready.
+
+### One-off Driver Verifier run
+
+From an elevated shell:
+
+```
+verifier /standard /driver com0com.sys
+reboot
+```
+
+The standard set includes Special Pool, Pool Tracking, Force IRQL Checking,
+I/O Verification, Deadlock Detection, DMA checking, and Security Checks.
+When Memory Integrity is enabled, the kernel also performs code integrity
+checks on the verified driver.
+
+After the reboot, run the driver test group:
+
+```
+setup_tests.exe "[driver]"
+```
+
+Any Verifier violation triggers a bugcheck with the driver named in the
+stop screen. If the machine boot-loops, disable Verifier in Safe Mode:
+
+```
+verifier /reset
+```
+
+When the tests pass, turn Verifier off and reboot once more:
+
+```
+verifier /reset
+```
+
+### Memory Integrity
+
+Enable Memory Integrity under Windows Security, Core Isolation, Memory
+Integrity, then reboot. Run the driver test group again. The driver has no
+executable pool allocations, so it is expected to pass.
+
+### Hyper-V Code Integrity Readiness Test
+
+The HLK HyperVisor Code Integrity Readiness Test is the formal qualification
+for HVCI compatibility. Running the full HLK is outside the scope of this
+document. The practical proxy is Driver Verifier with Code Integrity checks
+plus a Memory Integrity run as described above.
+
 ## Mock Framework
 
 Tests in Tier 2 use a preprocessor-based mock framework in
