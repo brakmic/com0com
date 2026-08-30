@@ -42,11 +42,12 @@
 
 ### Test suite
 
-- **267 tests across 4 tiers**:
+- **268 tests across 4 tiers**:
   - Tier 1: Unit tests for params, COM database, telnet protocol, hub messages
   - Tier 2: Mock-based tests for registry loading, port enumeration
   - Tier 3: Integration tests for setup.dll, com2tcp, hub4com
-  - Tier 4: Null-modem data integrity tests against the running driver
+  - Tier 4: Null-modem integrity, IOCTL boundary sweep, and full-duplex
+    stress tests against the running driver
 
 - **Automated runner**: `scripts/run_tests.ps1` builds and runs all test suites.
 

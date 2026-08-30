@@ -59,6 +59,7 @@
     <ClCompile Include="mock_comdb_test.cpp" />
     <ClCompile Include="null_modem_test.cpp" />
     <ClCompile Include="ioctl_boundary_test.cpp" />
+    <ClCompile Include="stress_test.cpp" />
     <!-- Mock implementations -->
     <ClCompile Include="mocks\registry_mock.cpp" />
     <ClCompile Include="mocks\comdb_mock.cpp" />

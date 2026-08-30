@@ -218,12 +218,41 @@ static BYTE *PutULONG(BYTE *p, ULONG v)
     return p + sizeof(v);
 }
 
+struct PortGuard
+{
+    HANDLE h;
+    explicit PortGuard(HANDLE handle) : h(handle) {}
+    ~PortGuard() { if (h && h != INVALID_HANDLE_VALUE) CloseHandle(h); }
+};
+
+static HANDLE OpenPortRaw(const char *pName)
+{
+    HANDLE h = CreateFileA(pName, GENERIC_READ | GENERIC_WRITE, 0,
+                           NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+    if (h == INVALID_HANDLE_VALUE)
+        FAIL("CreateFile(" << pName << ") failed: " << GetLastError());
+    return h;
+}
+
 TEST_CASE("Extended LSRMST_INSERT protocol preserves byte layout", "[driver]")
 {
     // Byte-level protocol checks for the extended LSRMST_INSERT exchange:
     // input is UCHAR escape + c0c signature + ULONG options, output is
     // either c0c + ULONG capabilities or a stream of insert records.
-    HANDLE h = OpenPort(PORT_A);
+    PortGuard guardA(OpenPort(PORT_A));
+    HANDLE h = guardA.h;
+    PortGuard guardB(OpenPortRaw(PORT_B));
+    HANDLE hB = guardB.h;
+
+    // The RBR insertion reports the paired port's baud rate. Set it to a
+    // known value so the test does not depend on state left by other tests.
+    DCB dcb = {0};
+    dcb.DCBlength = sizeof(dcb);
+    dcb.BaudRate = 9600;
+    dcb.ByteSize = 8;
+    dcb.Parity = NOPARITY;
+    dcb.StopBits = ONESTOPBIT;
+    REQUIRE(SetCommState(hB, &dcb));
 
     // CAPS query.
     BYTE capsIn[1 + C0CE_SIGNATURE_SIZE + sizeof(ULONG)];
@@ -313,6 +342,4 @@ TEST_CASE("Extended LSRMST_INSERT protocol preserves byte layout", "[driver]")
                          &returned, NULL);
     REQUIRE(!ok);
     REQUIRE(GetLastError() == ERROR_INVALID_PARAMETER);
-
-    CloseHandle(h);
 }

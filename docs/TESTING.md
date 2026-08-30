@@ -4,12 +4,12 @@ Last updated: 2026-08-29
 
 ## Overview
 
-The test suite covers 267 tests across four executables. All tests are run with
+The test suite covers 268 tests across four executables. All tests are run with
 `scripts\run_tests.ps1`.
 
 | Test executable | Framework | Tests | What it covers |
 |---|---|---|---|
-| `setup_tests.exe` | Catch2 v3.12 | 85 | setup.dll, comdb, mocks, integration, null-modem |
+| `setup_tests.exe` | Catch2 v3.12 | 86 | setup.dll, comdb, mocks, integration, null-modem |
 | `com2tcp_tests.exe` | Catch2 v3.12 | 60 | Telnet RFC 2217, COM parameters, integration |
 | `hub4com_tests.exe` | Catch2 v3.12 | 64 | HubMsg types, routes, filters, 16 plugins |
 | `setupg.Tests.dll` | xUnit | 58 | C# setup GUI logic, SetupCommand, SetupOutputParser |
@@ -91,6 +91,13 @@ Test the running com0com driver through actual COM port I/O. Requires:
   - Sweeps input and output buffer sizes 0 through 256 for every serial
     IOCTL, asserting bounded responses or documented error codes
   - Restores port state after the sweep
+
+- `stress_test.cpp`:
+  - Full-duplex framed transfer in both directions with sequence and
+    payload verification
+  - Concurrent workers churn DCB, timeouts, clear-comm-error, modem
+    signals, and queue sizes while data flows
+  - Frame count scales via the COM0COM_STRESS_FRAMES environment variable
 
 - `plugin_config_test.cpp`:
   - All 16 hub4com plugins: `LoadLibrary("InitA")` + routines table validation
