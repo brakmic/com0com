@@ -42,7 +42,7 @@
 
 ### Test suite
 
-- **266 tests across 4 tiers**:
+- **267 tests across 4 tiers**:
   - Tier 1: Unit tests for params, COM database, telnet protocol, hub messages
   - Tier 2: Mock-based tests for registry loading, port enumeration
   - Tier 3: Integration tests for setup.dll, com2tcp, hub4com
