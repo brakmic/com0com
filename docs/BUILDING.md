@@ -188,6 +188,25 @@ The main runner always excludes the driver tests tagged `[driver]`. Run
 The driver tests (`[driver]` tag in Catch2) require Administrator privileges, test signing
 enabled, and a CNCA0↔CNCB0 port pair created.
 
+## Driver Package Verification
+
+The driver project sets `SkipPackageVerification` because the WDK build
+integration is incomplete in some installations. That does not mean the
+package goes unverified. The release gate is `scripts\verify_driver.ps1`,
+which runs InfVerif on every INF in the package directory and checks the
+signatures of `com0com.sys` and `com0com.cat` with `signtool verify /pa`.
+
+```
+.\scripts\verify_driver.ps1
+```
+
+For test-signed builds, pass `-AllowUntrusted` to accept a self-created root
+instead of a trusted chain.
+
+The script fails when InfVerif is missing. Some WDK installations ship the
+InfVerif component only for ARM64. Install the Windows SDK verification tools
+on the release machine to satisfy the gate.
+
 ## Test Signing Certificate (Quick Reference)
 
 The script `scripts\create_certs.ps1` creates certificates with these properties:
