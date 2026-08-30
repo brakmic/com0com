@@ -63,6 +63,10 @@
   - The three driver INFs now advertise NTamd64 only, matching the x64-only
     build, and share the same DriverVer.
 
+  - The INFs set `PnpLockDown = 1` so installed driver files are protected
+    by Windows. Verified install, removal, and reinstall with the
+    locked-down package.
+
 ### Documentation
 
 - `docs/BUILDING.md`: build prerequisites, driver signing, test invocation

@@ -16,6 +16,7 @@ ClassGUID = {df799e12-3c56-421b-b298-b6d3642bc878}
 CatalogFile = com0com.cat
 ;           MM/DD/YYYY
 DriverVer = 07/30/2026,13.56.5.849
+PnpLockDown = 1
 UninstallInfTag = {df799e12-3c56-421b-b298-b6d3642bc878}
 
 ;******************************************************************************
