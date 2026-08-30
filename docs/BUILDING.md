@@ -155,7 +155,7 @@ All assertions must pass, including binary data round-trip and rapid open/close 
 
 ## Running the Test Suite
 
-The full test suite covers 265 tests across four executables:
+The full test suite covers 266 tests across four executables:
 
 ```
 .\scripts\run_tests.ps1           # Build and run all tests
@@ -165,7 +165,7 @@ The full test suite covers 265 tests across four executables:
 Individual test executables:
 
 ```
-com0com\build\tests\Debug\setup_tests.exe      # 83 tests (setup.dll: params, comdb, mocks, integration, null-modem)
+com0com\build\tests\Debug\setup_tests.exe      # 84 tests (setup.dll: params, comdb, mocks, integration, null-modem)
 com0com\build\tests\Debug\com2tcp_tests.exe    # 60 tests (telnet protocol, com params, integration)
 com0com\build\tests\Debug\hub4com_tests.exe    # 64 tests (hubmsg, routes, filters, plugins, integration)
 dotnet test com0com\setupg.Tests\              # 58 tests (C# setup GUI logic)

@@ -211,3 +211,108 @@ TEST_CASE("Extended GET_MODEM_CONTROL places signature at protocol offset", "[dr
 
     CloseHandle(h);
 }
+
+static BYTE *PutULONG(BYTE *p, ULONG v)
+{
+    memcpy(p, &v, sizeof(v));
+    return p + sizeof(v);
+}
+
+TEST_CASE("Extended LSRMST_INSERT protocol preserves byte layout", "[driver]")
+{
+    // Byte-level protocol checks for the extended LSRMST_INSERT exchange:
+    // input is UCHAR escape + c0c signature + ULONG options, output is
+    // either c0c + ULONG capabilities or a stream of insert records.
+    HANDLE h = OpenPort(PORT_A);
+
+    // CAPS query.
+    BYTE capsIn[1 + C0CE_SIGNATURE_SIZE + sizeof(ULONG)];
+    capsIn[0] = 0;
+    memcpy(capsIn + 1, C0CE_SIGNATURE, C0CE_SIGNATURE_SIZE);
+    PutULONG(capsIn + 1 + C0CE_SIGNATURE_SIZE, C0CE_INSERT_IOCTL_CAPS);
+
+    BYTE out[64];
+    DWORD returned = 0;
+    BOOL ok = DeviceIoControl(h, IOCTL_SERIAL_LSRMST_INSERT,
+                              capsIn, sizeof(capsIn), out, sizeof(out),
+                              &returned, NULL);
+    REQUIRE(ok);
+    REQUIRE(returned == C0CE_SIGNATURE_SIZE + sizeof(ULONG));
+    REQUIRE(memcmp(out, C0CE_SIGNATURE, C0CE_SIGNATURE_SIZE) == 0);
+    ULONG caps = 0;
+    memcpy(&caps, out + C0CE_SIGNATURE_SIZE, sizeof(caps));
+    REQUIRE(caps == (C0CE_INSERT_IOCTL_GET | C0CE_INSERT_IOCTL_RXCLEAR |
+                     C0CE_INSERT_ENABLE_LSR | C0CE_INSERT_ENABLE_MST |
+                     C0CE_INSERT_ENABLE_RBR | C0CE_INSERT_ENABLE_RLC |
+                     C0CE_INSERT_ENABLE_LSR_BI));
+
+    // GET with RBR only. Layout: escape, C0CE_INSERT_RBR, ULONG baud.
+    BYTE getIn[1 + C0CE_SIGNATURE_SIZE + sizeof(ULONG)];
+    getIn[0] = 0;
+    memcpy(getIn + 1, C0CE_SIGNATURE, C0CE_SIGNATURE_SIZE);
+    PutULONG(getIn + 1 + C0CE_SIGNATURE_SIZE,
+             C0CE_INSERT_IOCTL_GET | C0CE_INSERT_ENABLE_RBR);
+
+    memset(out, 0xCC, sizeof(out));
+    returned = 0;
+    ok = DeviceIoControl(h, IOCTL_SERIAL_LSRMST_INSERT,
+                         getIn, sizeof(getIn), out, sizeof(out),
+                         &returned, NULL);
+    REQUIRE(ok);
+    REQUIRE(returned == sizeof(UCHAR) * 2 + sizeof(ULONG));
+    REQUIRE(out[0] == 0);
+    REQUIRE(out[1] == C0CE_INSERT_RBR);
+    ULONG baud = 0;
+    memcpy(&baud, out + 2, sizeof(baud));
+    REQUIRE(baud == 9600);
+
+    // GET with all insertions. Layout:
+    //   LSR: escape, SERIAL_LSRMST_LSR_NODATA, lsr byte
+    //   MST: escape, SERIAL_LSRMST_MST, modem status byte
+    //   RBR: escape, C0CE_INSERT_RBR, ULONG baud
+    //   RLC: escape, C0CE_INSERT_RLC, word length, parity, stop bits
+    PutULONG(getIn + 1 + C0CE_SIGNATURE_SIZE,
+             C0CE_INSERT_IOCTL_GET | C0CE_INSERT_ENABLE_LSR |
+             C0CE_INSERT_ENABLE_MST | C0CE_INSERT_ENABLE_RBR |
+             C0CE_INSERT_ENABLE_RLC | C0CE_INSERT_ENABLE_LSR_BI);
+
+    memset(out, 0xCC, sizeof(out));
+    returned = 0;
+    ok = DeviceIoControl(h, IOCTL_SERIAL_LSRMST_INSERT,
+                         getIn, sizeof(getIn), out, sizeof(out),
+                         &returned, NULL);
+    REQUIRE(ok);
+    REQUIRE(returned == sizeof(UCHAR) * 2 + sizeof(UCHAR) +
+                        sizeof(UCHAR) * 2 + sizeof(UCHAR) +
+                        sizeof(UCHAR) * 2 + sizeof(ULONG) +
+                        sizeof(UCHAR) * 2 + sizeof(UCHAR) * 3);
+    BYTE *p = out;
+    REQUIRE(*p++ == 0);
+    REQUIRE(*p++ == SERIAL_LSRMST_LSR_NODATA);
+    p++; // lsr byte varies with TX state
+    REQUIRE(*p++ == 0);
+    REQUIRE(*p++ == SERIAL_LSRMST_MST);
+    p++; // modem status byte varies
+    REQUIRE(*p++ == 0);
+    REQUIRE(*p++ == C0CE_INSERT_RBR);
+    baud = 0;
+    memcpy(&baud, p, sizeof(baud));
+    p += sizeof(baud);
+    REQUIRE(baud == 9600);
+    REQUIRE(*p++ == 0);
+    REQUIRE(*p++ == C0CE_INSERT_RLC);
+    REQUIRE(*p++ == 8);          // word length
+    REQUIRE(*p++ == NO_PARITY);  // parity
+    REQUIRE(*p++ == STOP_BIT_1); // stop bits
+
+    // Unknown option bits are rejected.
+    PutULONG(getIn + 1 + C0CE_SIGNATURE_SIZE, C0CE_INSERT_ENABLE_RBR | 0x80000000);
+    returned = 0;
+    ok = DeviceIoControl(h, IOCTL_SERIAL_LSRMST_INSERT,
+                         getIn, sizeof(getIn), out, sizeof(out),
+                         &returned, NULL);
+    REQUIRE(!ok);
+    REQUIRE(GetLastError() == ERROR_INVALID_PARAMETER);
+
+    CloseHandle(h);
+}

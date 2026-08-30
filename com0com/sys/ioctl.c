@@ -650,7 +650,8 @@ NTSTATUS FdoPortIoCtl(
           RtlEqualMemory(pSysBuf + 1, C0CE_SIGNATURE, C0CE_SIGNATURE_SIZE))
       {
         extended = TRUE;
-        optsAndBits = *(ULONG *)(pSysBuf + 1 + C0CE_SIGNATURE_SIZE);
+        RtlCopyMemory(&optsAndBits, pSysBuf + 1 + C0CE_SIGNATURE_SIZE,
+                      sizeof(optsAndBits));
 
         #define C0CE_INSERT_OPTS ( \
             C0CE_INSERT_IOCTL_GET| \
@@ -676,7 +677,10 @@ NTSTATUS FdoPortIoCtl(
           }
 
           RtlCopyMemory(pSysBuf, C0CE_SIGNATURE, C0CE_SIGNATURE_SIZE);
-          *(ULONG *)(pSysBuf + C0CE_SIGNATURE_SIZE) = C0CE_INSERT_CAPS;
+          {
+            ULONG caps = C0CE_INSERT_CAPS;
+            RtlCopyMemory(pSysBuf + C0CE_SIGNATURE_SIZE, &caps, sizeof(caps));
+          }
         } else {
           if (optsAndBits & ~C0CE_INSERT_CAPS) {
             status = STATUS_INVALID_PARAMETER;
@@ -753,7 +757,8 @@ NTSTATUS FdoPortIoCtl(
           if (optsAndBits & C0CE_INSERT_ENABLE_RBR) {
             *pSysBuf++ = escapeChar;
             *pSysBuf++ = C0CE_INSERT_RBR;
-            *(ULONG *)pSysBuf = pIoPortRemote->baudRate.BaudRate;
+            RtlCopyMemory(pSysBuf, &pIoPortRemote->baudRate.BaudRate,
+                          sizeof(pIoPortRemote->baudRate.BaudRate));
             pSysBuf += sizeof(ULONG);
           }
 
